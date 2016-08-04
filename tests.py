@@ -38,6 +38,7 @@ class TestTasks(unittest.TestCase):
 		self.user = user.NewLogin()
 		self.user.login(username,password)
 		self.user.update_habits()
+		self.user.update_dailies()
 
 	def tearDown(self):
 		for habit in self.user.habits:
@@ -63,4 +64,20 @@ class TestTasks(unittest.TestCase):
 				break
 		self.assertFalse(test_task_name in [habit.title for habit in self.user.habits])
 	
+	def test_read_dailies(self):
+		test_task_name = "Test daily"
+		self.assertTrue(test_task_name in [daily.title for daily in self.user.dailies])
 
+	def test_add_daily(self):
+		test_task_name = "Test creation daily"
+		self.user.add_daily(test_task_name)
+		self.assertTrue(test_task_name in [daily.title for daily in self.user.dailies])
+
+	def test_delete_daily(self):
+		test_task_name = "Test deletion daily"
+		self.user.add_daily(test_task_name)
+		for daily in self.user.dailies:
+			if daily.title == test_task_name:
+				daily.delete()
+				break
+		self.assertFalse(test_task_name in [daily.title for daily in self.user.dailies])
