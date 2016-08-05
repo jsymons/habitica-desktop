@@ -37,9 +37,8 @@ class TestTasks(unittest.TestCase):
 	def setUp(self):
 		self.user = user.NewLogin()
 		self.user.login(username,password)
-		self.user.update_habits()
-		self.user.update_dailies()
-		self.user.update_todos()
+		self.user.update_tasks()
+		
 
 	def tearDown(self):
 		for habit in self.user.habits:
