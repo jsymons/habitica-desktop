@@ -70,7 +70,6 @@ class TestTasks(unittest.TestCase):
 		for habit in self.user.habits:
 			if habit.title == test_task_name:
 				habit.delete()
-				break
 		self.assertFalse(test_task_name in [habit.title for habit in self.user.habits])
 	
 	def test_read_dailies(self):
@@ -88,7 +87,6 @@ class TestTasks(unittest.TestCase):
 		for daily in self.user.dailies:
 			if daily.title == test_task_name:
 				daily.delete()
-				break
 		self.assertFalse(test_task_name in [daily.title for daily in self.user.dailies])
 
 	def test_read_todos(self):
@@ -106,5 +104,4 @@ class TestTasks(unittest.TestCase):
 		for todo in self.user.todos:
 			if todo.title == test_task_name:
 				todo.delete()
-				break
 		self.assertFalse(test_task_name in [todo.title for todo in self.user.todos])
