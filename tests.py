@@ -1,32 +1,29 @@
 import unittest
 
-from habitica_api import user
+from habitica_api.user import User
 from habitica_api import task
+from habitica_api import Habitica
 
 loginfile = open('test_credentials')
 username = loginfile.readline().strip()
 password = loginfile.readline().strip()
 loginfile.close()
 
+
 class TestAPILogin(unittest.TestCase):
 
-	def setUp(self):
-		self.user = user.NewLogin()
-		
-
-	def test_not_logged_in(self):
-		self.assertFalse(self.user.login_status)
-
 	def test_login(self):
-		self.user.login(username,password)
-		self.assertTrue(self.user.login_status)
+		connection = Habitica.Connection()
+		connection.login(username,password)
+		self.assertTrue(connection.login_status)
 
 
 class TestUserProfile(unittest.TestCase):
 
 	def setUp(self):
-		self.user = user.NewLogin()
-		self.user.login(username,password)
+		connection = Habitica.Connection()
+		connection.login(username,password)
+		self.user = User(connection)
 		
 
 	def test_status_update(self):
@@ -35,8 +32,9 @@ class TestUserProfile(unittest.TestCase):
 class TestTasks(unittest.TestCase):
 
 	def setUp(self):
-		self.user = user.NewLogin()
-		self.user.login(username,password)
+		connection = Habitica.Connection()
+		connection.login(username,password)
+		self.user = User(connection)
 		self.user.update_tasks()
 		
 
@@ -76,7 +74,6 @@ class TestTasks(unittest.TestCase):
 	def test_delete_habit(self):
 		test_task_name = "Test deletion habit"
 		self.user.add_habit(test_task_name)
-		task_id = ""
 		for habit in self.user.habits:
 			if habit.title == test_task_name:
 				habit.delete()
@@ -87,9 +84,27 @@ class TestTasks(unittest.TestCase):
 		self.assertTrue(test_task_name in [daily.title for daily in self.user.dailies])
 
 	def test_add_daily(self):
-		test_task_name = "Test creation daily"
-		self.user.add_daily(test_task_name)
-		self.assertTrue(test_task_name in [daily.title for daily in self.user.dailies])
+		test_task = {}
+		test_task['title'] = "Test creation daily"
+		test_task['notes'] = "Test daily notes"
+		test_task['difficulty'] = 2
+		test_task['repeat'] = {
+			'su': True,
+			'm': False,
+			't': True,
+			'w': False,
+			'th': True,
+			'f': False,
+			's': True
+		}
+		test_task['frequency'] = 'weekly'
+
+		r = self.user.add_daily(**test_task)
+		self.assertTrue(test_task['title'] in [daily.title for daily in self.user.dailies])
+		for daily in [daily for daily in self.user.dailies if daily.title == test_task['title']]:
+			self.assertTrue(daily.notes == test_task['notes'])
+			self.assertTrue(daily.difficulty == test_task['difficulty'])
+			self.assertTrue(daily.repeat == test_task['repeat'])
 
 	def test_delete_daily(self):
 		test_task_name = "Test deletion daily"
