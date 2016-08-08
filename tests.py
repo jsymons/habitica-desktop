@@ -80,6 +80,30 @@ class TestTasks(unittest.TestCase):
 			if habit.title == test_task_name:
 				habit.delete()
 		self.assertFalse(test_task_name in [habit.title for habit in self.user.habits])
+
+	def test_edit_task(self):
+		test_task = {}
+		test_task['title'] = "Test modification habit"
+		test_task['notes'] = "Test habit notes"
+		test_task['up'] = True
+		test_task['down'] = False
+		test_task['difficulty'] = 1.5
+		self.user.add_habit(**test_task)
+		edited_task = {}
+		edited_task['title'] = "Test modified habit"
+		edited_task['notes'] = "Modified notes"
+		edited_task['up'] = False
+		edited_task['down'] = True
+		edited_task['difficulty'] = 0.1
+		for habit in [habit for habit in self.user.habits if habit.title == test_task['title']]:
+			habit.modify(edited_task)
+		self.assertFalse(test_task['title'] in [habit.title for habit in self.user.habits], "Original task title still exits")
+		self.assertTrue(edited_task['title'] in [habit.title for habit in self.user.habits])
+		for habit in [habit for habit in self.user.habits if habit.title == edited_task['title']]:
+			self.assertEqual(habit.notes,edited_task['notes'])
+			self.assertEqual(habit.up,edited_task['up'])
+			self.assertEqual(habit.down,edited_task['down'])
+			self.assertEqual(habit.difficulty,edited_task['difficulty'])
 	
 	def test_read_dailies(self):
 		test_task_name = "Test daily"
