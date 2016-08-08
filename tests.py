@@ -10,6 +10,7 @@ password = loginfile.readline().strip()
 loginfile.close()
 
 
+
 class TestAPILogin(unittest.TestCase):
 
 	def test_login(self):
@@ -104,6 +105,7 @@ class TestTasks(unittest.TestCase):
 			self.assertEqual(habit.up,edited_task['up'])
 			self.assertEqual(habit.down,edited_task['down'])
 			self.assertEqual(habit.difficulty,edited_task['difficulty'])
+			habit.delete()
 	
 	def test_read_dailies(self):
 		test_task_name = "Test daily"
@@ -178,3 +180,49 @@ class TestTasks(unittest.TestCase):
 			if todo.title == test_task_name:
 				todo.delete()
 		self.assertFalse(test_task_name in [todo.title for todo in self.user.todos])
+
+
+	def test_add_checklist_item(self):
+		test_task = {}
+		test_task['title'] = "Test checklist todo"
+		self.user.add_todo(**test_task)
+		checklist_text = "Test checklist item"
+		for todo in [todo for todo in self.user.todos if todo.title == test_task['title']]:
+			todo.add_to_checklist(checklist_text)
+		for todo in [todo for todo in self.user.todos if todo.title == test_task['title']]:
+			checklist_titles = [checklist_item['text'] for checklist_item in todo.checklist]
+			self.assertTrue(checklist_text in checklist_titles,"%s not in %s" % (checklist_text, checklist_titles))
+			todo.delete()
+
+	def test_delete_checklist_item(self):
+		test_task = {}
+		test_task['title'] = "Test checklist deletion todo"
+		self.user.add_todo(**test_task)
+		checklist_text = "I shouldn't be here"
+		for todo in [todo for todo in self.user.todos if todo.title == test_task['title']]:
+			todo.add_to_checklist(checklist_text)
+		for todo in [todo for todo in self.user.todos if todo.title == test_task['title']]:
+			checklist_id = [checklist_item['id'] for checklist_item in todo.checklist if checklist_item['text'] == checklist_text][0]
+			todo.delete_from_checklist(checklist_id)
+		for todo in [todo for todo in self.user.todos if todo.title == test_task['title']]:
+			self.assertFalse(checklist_text in [checklist_item['text'] for checklist_item in todo.checklist])
+			todo.delete()
+
+	def test_edit_checklist_item(self):
+		test_task = {}
+		test_task['title'] = "Test checklist edit todo"
+		self.user.add_todo(**test_task)
+		checklist_text = "You shouldn't see me."
+		for todo in [todo for todo in self.user.todos if todo.title == test_task['title']]:
+			todo.add_to_checklist(checklist_text)
+		edited_text = "I'm what you should see."
+		for todo in [todo for todo in self.user.todos if todo.title == test_task['title']]:
+			checklist_item = {}
+			checklist_item['id'] = [checklist_item['id'] for checklist_item in todo.checklist if checklist_item['text'] == checklist_text][0]
+			checklist_item['text'] = edited_text
+			todo.edit_checklist(**checklist_item)
+		for todo in [todo for todo in self.user.todos if todo.title == test_task['title']]:
+			checklist = [checklist_item['text'] for checklist_item in todo.checklist]
+			self.assertFalse(checklist_text in checklist)
+			self.assertTrue(edited_text in checklist)
+			todo.delete()
