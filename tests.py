@@ -9,7 +9,8 @@ username = loginfile.readline().strip()
 password = loginfile.readline().strip()
 loginfile.close()
 
-
+def helper_title_matcher(search_in,search_for):
+	return [search_item for search_item in search_in if search_item.title == search_for]
 
 class TestAPILogin(unittest.TestCase):
 
@@ -226,3 +227,33 @@ class TestTasks(unittest.TestCase):
 			self.assertFalse(checklist_text in checklist)
 			self.assertTrue(edited_text in checklist)
 			todo.delete()
+
+	def test_score_task(self):
+		test_task = {}
+		test_task['title'] = "Test score daily"
+		self.user.add_daily(**test_task)
+		for daily in [daily for daily in self.user.dailies if daily.title == test_task['title']]:
+			daily.score()
+		for daily in [daily for daily in self.user.dailies if daily.title == test_task['title']]:
+			self.assertTrue(daily.completed)
+			daily.delete()
+
+	def test_score_habit(self):
+		test_task = {}
+		test_task['title'] = "Test score habit"
+		test_task['up'] = True
+		test_task['down'] = True
+		self.user.add_habit(**test_task)
+		self.user.update_status()
+		current_xp = self.user.profile['stats']['exp']
+		current_hp = self.user.profile['stats']['hp']
+		for habit in helper_title_matcher(self.user.habits,test_task['title']):
+			habit.score('up')
+			self.user.update_status()
+			self.assertNotEqual(current_xp,self.user.profile['stats']['exp'],'XP has not changed')
+		for habit in helper_title_matcher(self.user.habits,test_task['title']):
+			habit.score('down')
+			self.user.update_status()
+			self.assertNotEqual(current_hp,self.user.profile['stats']['hp'],'HP has not changed')
+			habit.delete()
+
