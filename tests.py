@@ -247,3 +247,13 @@ class TestTasks(unittest.TestCase):
 			self.assertNotEqual(current_hp,self.user.profile['stats']['hp'],'HP has not changed')
 			habit.delete()
 
+	def test_score_checklist(self):
+		test_task = {}
+		test_task['title'] = "Test score checklist"
+		self.user.add_todo(**test_task)
+		checklist_text = "Check me off!"
+		for todo in [todo for todo in self.user.todos if todo.title == test_task['title']]:
+			todo.add_to_checklist(checklist_text)
+			todo.score_checklist(todo.checklist[0]['id'])
+			self.assertTrue(todo.checklist[0]['completed'])
+			todo.delete()
