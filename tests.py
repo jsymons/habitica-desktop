@@ -9,8 +9,6 @@ username = loginfile.readline().strip()
 password = loginfile.readline().strip()
 loginfile.close()
 
-def helper_title_matcher(search_in,search_for):
-	return [search_item for search_item in search_in if search_item.title == search_for]
 
 class TestAPILogin(unittest.TestCase):
 
@@ -99,11 +97,10 @@ class TestTasks(unittest.TestCase):
 		edited_task['difficulty'] = 0.1
 		for habit in [habit for habit in self.user.habits if habit.title == test_task['title']]:
 			habit.modify(edited_task)
-		self.assertFalse(test_task['title'] in [habit.title for habit in self.user.habits], "Original task title still exits")
-		self.assertTrue(edited_task['title'] in [habit.title for habit in self.user.habits])
-		for habit in [habit for habit in self.user.habits if habit.title == edited_task['title']]:
+			self.assertNotEqual(test_task['title'],habit.title)
+			self.assertEqual(edited_task['title'],habit.title)
 			self.assertEqual(habit.notes,edited_task['notes'])
-			self.assertEqual(habit.up,edited_task['up'])
+			self.assertEqual(habit.up,edited_task['up'],"Habit up is %s, should be %s" % (habit.up,edited_task['up']))
 			self.assertEqual(habit.down,edited_task['down'])
 			self.assertEqual(habit.difficulty,edited_task['difficulty'])
 			habit.delete()
@@ -190,7 +187,6 @@ class TestTasks(unittest.TestCase):
 		checklist_text = "Test checklist item"
 		for todo in [todo for todo in self.user.todos if todo.title == test_task['title']]:
 			todo.add_to_checklist(checklist_text)
-		for todo in [todo for todo in self.user.todos if todo.title == test_task['title']]:
 			checklist_titles = [checklist_item['text'] for checklist_item in todo.checklist]
 			self.assertTrue(checklist_text in checklist_titles,"%s not in %s" % (checklist_text, checklist_titles))
 			todo.delete()
@@ -202,10 +198,8 @@ class TestTasks(unittest.TestCase):
 		checklist_text = "I shouldn't be here"
 		for todo in [todo for todo in self.user.todos if todo.title == test_task['title']]:
 			todo.add_to_checklist(checklist_text)
-		for todo in [todo for todo in self.user.todos if todo.title == test_task['title']]:
 			checklist_id = [checklist_item['id'] for checklist_item in todo.checklist if checklist_item['text'] == checklist_text][0]
 			todo.delete_from_checklist(checklist_id)
-		for todo in [todo for todo in self.user.todos if todo.title == test_task['title']]:
 			self.assertFalse(checklist_text in [checklist_item['text'] for checklist_item in todo.checklist])
 			todo.delete()
 
@@ -216,13 +210,11 @@ class TestTasks(unittest.TestCase):
 		checklist_text = "You shouldn't see me."
 		for todo in [todo for todo in self.user.todos if todo.title == test_task['title']]:
 			todo.add_to_checklist(checklist_text)
-		edited_text = "I'm what you should see."
-		for todo in [todo for todo in self.user.todos if todo.title == test_task['title']]:
+			edited_text = "I'm what you should see."
 			checklist_item = {}
 			checklist_item['id'] = [checklist_item['id'] for checklist_item in todo.checklist if checklist_item['text'] == checklist_text][0]
 			checklist_item['text'] = edited_text
 			todo.edit_checklist(**checklist_item)
-		for todo in [todo for todo in self.user.todos if todo.title == test_task['title']]:
 			checklist = [checklist_item['text'] for checklist_item in todo.checklist]
 			self.assertFalse(checklist_text in checklist)
 			self.assertTrue(edited_text in checklist)
@@ -234,7 +226,6 @@ class TestTasks(unittest.TestCase):
 		self.user.add_daily(**test_task)
 		for daily in [daily for daily in self.user.dailies if daily.title == test_task['title']]:
 			daily.score()
-		for daily in [daily for daily in self.user.dailies if daily.title == test_task['title']]:
 			self.assertTrue(daily.completed)
 			daily.delete()
 
@@ -247,11 +238,10 @@ class TestTasks(unittest.TestCase):
 		self.user.update_status()
 		current_xp = self.user.profile['stats']['exp']
 		current_hp = self.user.profile['stats']['hp']
-		for habit in helper_title_matcher(self.user.habits,test_task['title']):
+		for habit in [habit for habit in self.user.habits if habit.title == test_task['title']]:
 			habit.score('up')
 			self.user.update_status()
 			self.assertNotEqual(current_xp,self.user.profile['stats']['exp'],'XP has not changed')
-		for habit in helper_title_matcher(self.user.habits,test_task['title']):
 			habit.score('down')
 			self.user.update_status()
 			self.assertNotEqual(current_hp,self.user.profile['stats']['hp'],'HP has not changed')
