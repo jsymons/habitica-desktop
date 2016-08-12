@@ -3,6 +3,10 @@ import unittest
 from habitica_api.user import User
 from habitica_api import task
 from habitica_api.connection import Connection
+from habitica_api.daily import Daily
+from habitica_api.habit import Habit
+from habitica_api.todo import ToDo
+from habitica_api.tag import Tag
 
 loginfile = open('test_credentials')
 username = loginfile.readline().strip()
@@ -29,33 +33,18 @@ class TestUserProfile(unittest.TestCase):
 	def test_status_update(self):
 		self.assertTrue(self.user.update_status())
 
-class TestTasks(unittest.TestCase):
+
+class TestHabits(unittest.TestCase):
 
 	def setUp(self):
 		connection = Connection()
 		connection.login(username,password)
 		self.user = User()
-		self.user.update_tasks()
-		
+		Habit.update_all()
 
-	def tearDown(self):
-		for habit in self.user.habits:
-			if habit.title == "Test creation habit":
-				habit.delete()
-
-		for daily in self.user.dailies:
-			if daily.title == "Test creation daily" or daily.title == "Test xdays daily":
-				daily.delete()
-
-
-		for todo in self.user.todos:
-			if todo.title == "Test creation todo":
-				todo.delete()
-
-		
 	def test_read_habits(self):
 		test_task_name = "Test habit"
-		self.assertIn(test_task_name,[habit.title for habit in self.user.habits])
+		self.assertIn(test_task_name,[habit.title for habit in Habit.all])
 
 	def test_add_habit(self):
 		test_task = {}
@@ -65,38 +54,39 @@ class TestTasks(unittest.TestCase):
 		test_task['down'] = False
 		test_task['difficulty'] = 1.5
 
-		self.user.add_habit(**test_task)
-		self.assertTrue(test_task['title'] in [habit.title for habit in self.user.habits])
-		for habit in [habit for habit in self.user.habits if habit.title == test_task['title']]:
+		Habit.add(**test_task)
+		self.assertTrue(test_task['title'] in [habit.title for habit in Habit.all])
+		for habit in [habit for habit in Habit.all if habit.title == test_task['title']]:
 			self.assertEqual(habit.notes,test_task['notes'], 'Notes do not match')
 			self.assertEqual(habit.up,test_task['up'], 'Up is set to false')
 			self.assertEqual(habit.down,test_task['down'], 'Down is set to true')
 			self.assertEqual(habit.difficulty,test_task['difficulty'], 'Difficulty does not match')
+			habit.delete()
 
 	def test_delete_habit(self):
 		test_task = {}
 		test_task['title'] = "Test deletion habit"
-		self.user.add_habit(**test_task)
-		for habit in self.user.habits:
+		Habit.add(**test_task)
+		for habit in Habit.all:
 			if habit.title == test_task['title']:
 				habit.delete()
-		self.assertNotIn(test_task['title'],[habit.title for habit in self.user.habits])
+		self.assertNotIn(test_task['title'],[habit.title for habit in Habit.all])
 
-	def test_edit_task(self):
+	def test_edit_habit(self):
 		test_task = {}
 		test_task['title'] = "Test modification habit"
 		test_task['notes'] = "Test habit notes"
 		test_task['up'] = True
 		test_task['down'] = False
 		test_task['difficulty'] = 1.5
-		self.user.add_habit(**test_task)
+		Habit.add(**test_task)
 		edited_task = {}
 		edited_task['title'] = "Test modified habit"
 		edited_task['notes'] = "Modified notes"
 		edited_task['up'] = False
 		edited_task['down'] = True
 		edited_task['difficulty'] = 0.1
-		for habit in [habit for habit in self.user.habits if habit.title == test_task['title']]:
+		for habit in [habit for habit in Habit.all if habit.title == test_task['title']]:
 			habit.modify(edited_task)
 			self.assertNotEqual(test_task['title'],habit.title)
 			self.assertEqual(edited_task['title'],habit.title)
@@ -105,10 +95,17 @@ class TestTasks(unittest.TestCase):
 			self.assertEqual(habit.down,edited_task['down'])
 			self.assertEqual(habit.difficulty,edited_task['difficulty'])
 			habit.delete()
-	
+
+class TestDailies(unittest.TestCase):
+	def setUp(self):
+		connection = Connection()
+		connection.login(username,password)
+		self.user = User()
+		Daily.update_all()
+
 	def test_read_dailies(self):
 		test_task_name = "Test daily"
-		self.assertIn(test_task_name,[daily.title for daily in self.user.dailies])
+		self.assertIn(test_task_name,[daily.title for daily in Daily.all])
 
 	def test_add_daily(self):
 		test_task = {}
@@ -126,22 +123,23 @@ class TestTasks(unittest.TestCase):
 		}
 		test_task['frequency'] = 'weekly'
 
-		self.user.add_daily(**test_task)
-		self.assertIn(test_task['title'],[daily.title for daily in self.user.dailies])
-		for daily in [daily for daily in self.user.dailies if daily.title == test_task['title']]:
+		Daily.add(**test_task)
+		self.assertIn(test_task['title'],[daily.title for daily in Daily.all])
+		for daily in [daily for daily in Daily.all if daily.title == test_task['title']]:
 			self.assertEqual(daily.notes,test_task['notes'])
 			self.assertEqual(daily.difficulty,test_task['difficulty'])
 			self.assertEqual(daily.repeat,test_task['repeat'])
 			self.assertEqual(daily.frequency,test_task['frequency'])
+			daily.delete()
 
 	def test_add_xdays_daily(self):
 		test_task = {}
 		test_task['title'] = "Test xdays daily"
 		test_task['everyX'] = 5
 		test_task['frequency'] = 'daily'
-		self.user.add_daily(**test_task)
-		self.assertIn(test_task['title'],[daily.title for daily in self.user.dailies])
-		for daily in [daily for daily in self.user.dailies if daily.title == test_task['title']]:
+		Daily.add(**test_task)
+		self.assertIn(test_task['title'],[daily.title for daily in Daily.all])
+		for daily in [daily for daily in Daily.all if daily.title == test_task['title']]:
 			self.assertEqual(daily.everyX,test_task['everyX'])
 			self.assertEqual(daily.frequency,test_task['frequency'])
 
@@ -149,15 +147,25 @@ class TestTasks(unittest.TestCase):
 	def test_delete_daily(self):
 		test_task = {}
 		test_task['title'] = "Test deletion daily"
-		self.user.add_daily(**test_task)
-		for daily in self.user.dailies:
+		Daily.add(**test_task)
+		for daily in Daily.all:
 			if daily.title == test_task['title']:
 				daily.delete()
-		self.assertNotIn(test_task['title'],[daily.title for daily in self.user.dailies])
+		self.assertNotIn(test_task['title'],[daily.title for daily in Daily.all])
+
+
+
+
+class TestTodos(unittest.TestCase):
+	def setUp(self):
+		connection = Connection()
+		connection.login(username,password)
+		self.user = User()
+		ToDo.update_all()
 
 	def test_read_todos(self):
 		test_task_name = "Test todo"
-		self.assertIn(test_task_name,[todo.title for todo in self.user.todos])
+		self.assertIn(test_task_name,[todo.title for todo in ToDo.all])
 
 	def test_add_todo(self):
 		test_task = {}
@@ -166,29 +174,41 @@ class TestTasks(unittest.TestCase):
 		test_task['date'] = "2016-12-25"
 		test_task['difficulty'] = 2
 		
-		self.user.add_todo(**test_task)
-		self.assertIn(test_task['title'],[todo.title for todo in self.user.todos])
-		for todo in [todo for todo in self.user.todos if todo.title == test_task['title']]:
+		ToDo.add(**test_task)
+		self.assertIn(test_task['title'],[todo.title for todo in ToDo.all])
+		for todo in [todo for todo in ToDo.all if todo.title == test_task['title']]:
 			self.assertEqual(todo.notes,test_task['notes'])
 			self.assertTrue(todo.due_date.startswith(test_task['date']), 'Date mismatch: %s vs. %s' % (test_task['date'],todo.due_date))
 			self.assertEqual(todo.difficulty,test_task['difficulty'])
+			todo.delete()
 
 	def test_delete_todo(self):
 		test_task = {}
 		test_task['title'] = "Test deletion todo"
-		self.user.add_todo(**test_task)
-		for todo in self.user.todos:
+		ToDo.add(**test_task)
+		for todo in ToDo.all:
 			if todo.title == test_task['title']:
 				todo.delete()
-		self.assertNotIn(test_task['title'],[todo.title for todo in self.user.todos])
+		self.assertNotIn(test_task['title'],[todo.title for todo in ToDo.all])
 
+
+
+
+class TestChecklists(unittest.TestCase):
+	def setUp(self):
+		connection = Connection()
+		connection.login(username,password)
+		self.user = User()
+		Daily.update_all()
+		Habit.update_all()
+		ToDo.update_all()
 
 	def test_add_checklist_item(self):
 		test_task = {}
 		test_task['title'] = "Test checklist todo"
-		self.user.add_todo(**test_task)
+		ToDo.add(**test_task)
 		checklist_text = "Test checklist item"
-		for todo in [todo for todo in self.user.todos if todo.title == test_task['title']]:
+		for todo in [todo for todo in ToDo.all if todo.title == test_task['title']]:
 			todo.add_to_checklist(checklist_text)
 			checklist_titles = [checklist_item['text'] for checklist_item in todo.checklist]
 			self.assertIn(checklist_text,checklist_titles,"%s not in %s" % (checklist_text, checklist_titles))
@@ -197,9 +217,9 @@ class TestTasks(unittest.TestCase):
 	def test_delete_checklist_item(self):
 		test_task = {}
 		test_task['title'] = "Test checklist deletion todo"
-		self.user.add_todo(**test_task)
+		ToDo.add(**test_task)
 		checklist_text = "I shouldn't be here"
-		for todo in [todo for todo in self.user.todos if todo.title == test_task['title']]:
+		for todo in [todo for todo in ToDo.all if todo.title == test_task['title']]:
 			todo.add_to_checklist(checklist_text)
 			checklist_id = [checklist_item['id'] for checklist_item in todo.checklist if checklist_item['text'] == checklist_text][0]
 			todo.delete_from_checklist(checklist_id)
@@ -209,9 +229,9 @@ class TestTasks(unittest.TestCase):
 	def test_edit_checklist_item(self):
 		test_task = {}
 		test_task['title'] = "Test checklist edit todo"
-		self.user.add_todo(**test_task)
+		ToDo.add(**test_task)
 		checklist_text = "You shouldn't see me."
-		for todo in [todo for todo in self.user.todos if todo.title == test_task['title']]:
+		for todo in [todo for todo in ToDo.all if todo.title == test_task['title']]:
 			todo.add_to_checklist(checklist_text)
 			edited_text = "I'm what you should see."
 			checklist_item = {}
@@ -223,11 +243,23 @@ class TestTasks(unittest.TestCase):
 			self.assertIn(edited_text,checklist)
 			todo.delete()
 
+
+
+
+class TestScoring(unittest.TestCase):
+	def setUp(self):
+		connection = Connection()
+		connection.login(username,password)
+		self.user = User()
+		Daily.update_all()
+		Habit.update_all()
+		ToDo.update_all()
+
 	def test_score_task(self):
 		test_task = {}
 		test_task['title'] = "Test score daily"
-		self.user.add_daily(**test_task)
-		for daily in [daily for daily in self.user.dailies if daily.title == test_task['title']]:
+		Daily.add(**test_task)
+		for daily in [daily for daily in Daily.all if daily.title == test_task['title']]:
 			daily.score()
 			self.assertTrue(daily.completed)
 			daily.delete()
@@ -237,11 +269,11 @@ class TestTasks(unittest.TestCase):
 		test_task['title'] = "Test score habit"
 		test_task['up'] = True
 		test_task['down'] = True
-		self.user.add_habit(**test_task)
+		Habit.add(**test_task)
 		self.user.update_status()
 		current_xp = self.user.profile['stats']['exp']
 		current_hp = self.user.profile['stats']['hp']
-		for habit in [habit for habit in self.user.habits if habit.title == test_task['title']]:
+		for habit in [habit for habit in Habit.all if habit.title == test_task['title']]:
 			habit.score('up')
 			self.user.update_status()
 			self.assertNotEqual(current_xp,self.user.profile['stats']['exp'],'XP has not changed')
@@ -253,13 +285,15 @@ class TestTasks(unittest.TestCase):
 	def test_score_checklist(self):
 		test_task = {}
 		test_task['title'] = "Test score checklist"
-		self.user.add_todo(**test_task)
+		ToDo.add(**test_task)
 		checklist_text = "Check me off!"
-		for todo in [todo for todo in self.user.todos if todo.title == test_task['title']]:
+		for todo in [todo for todo in ToDo.all if todo.title == test_task['title']]:
 			todo.add_to_checklist(checklist_text)
 			todo.score_checklist(todo.checklist[0]['id'])
 			self.assertTrue(todo.checklist[0]['completed'])
 			todo.delete()
+
+
 
 
 
@@ -269,8 +303,11 @@ class TestTagging(unittest.TestCase):
 		connection = Connection()
 		connection.login(username,password)
 		self.user = User()
-		self.user.update_tasks()
-		self.user.update_tags()
+		Daily.update_all()
+		Habit.update_all()
+		ToDo.update_all()
+		Tag.update_all()
+		
 
 	def test_read_tags(self):
-		self.assertTrue(len(self.user.tags) > 0)
+		self.assertTrue(len(Tag.all) > 0)
