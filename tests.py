@@ -2,7 +2,7 @@ import unittest
 
 from habitica_api.user import User
 from habitica_api import task
-from habitica_api import habitica
+from habitica_api.connection import Connection
 
 loginfile = open('test_credentials')
 username = loginfile.readline().strip()
@@ -13,7 +13,7 @@ loginfile.close()
 class TestAPILogin(unittest.TestCase):
 
 	def test_login(self):
-		connection = habitica.Connection()
+		connection = Connection()
 		connection.login(username,password)
 		self.assertTrue(connection.login_status)
 
@@ -21,9 +21,9 @@ class TestAPILogin(unittest.TestCase):
 class TestUserProfile(unittest.TestCase):
 
 	def setUp(self):
-		connection = habitica.Connection()
+		connection = Connection()
 		connection.login(username,password)
-		self.user = User(connection)
+		self.user = User()
 		
 
 	def test_status_update(self):
@@ -32,9 +32,9 @@ class TestUserProfile(unittest.TestCase):
 class TestTasks(unittest.TestCase):
 
 	def setUp(self):
-		connection = habitica.Connection()
+		connection = Connection()
 		connection.login(username,password)
-		self.user = User(connection)
+		self.user = User()
 		self.user.update_tasks()
 		
 
