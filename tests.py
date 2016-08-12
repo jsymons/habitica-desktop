@@ -260,3 +260,17 @@ class TestTasks(unittest.TestCase):
 			todo.score_checklist(todo.checklist[0]['id'])
 			self.assertTrue(todo.checklist[0]['completed'])
 			todo.delete()
+
+
+
+class TestTagging(unittest.TestCase):
+
+	def setUp(self):
+		connection = Connection()
+		connection.login(username,password)
+		self.user = User()
+		self.user.update_tasks()
+		self.user.update_tags()
+
+	def test_read_tags(self):
+		self.assertTrue(len(self.user.tags) > 0)
