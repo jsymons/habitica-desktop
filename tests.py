@@ -311,3 +311,36 @@ class TestTagging(unittest.TestCase):
 
 	def test_read_tags(self):
 		self.assertTrue(len(Tag.all) > 0)
+
+	def test_add_tag(self):
+		new_tag = Tag.add('New tag')
+		self.assertIn(new_tag,Tag.all)
+		new_tag.delete()
+
+	def test_delete_tag(self):
+		test_tag = Tag.add('Delete me')
+		test_tag.delete()
+		self.assertNotIn(test_tag,Tag.all)
+
+	def test_rename_tag(self):
+		test_tag = Tag.add('Edit me')
+		test_tag.rename('Edited')
+		self.assertEqual(test_tag.name,'Edited')
+		test_tag.delete()
+
+	def test_apply_tag(self):
+		test_tag = Tag.add('Apply me')
+		test_daily = Daily.add(title='Tag me')
+		test_daily.add_tag(test_tag)
+		self.assertIn(test_tag.id,test_daily.tags)
+		test_tag.delete()
+		test_daily.delete()
+
+	def test_remove_tag(self):
+		test_tag = Tag.add('Remove me')
+		test_daily = Daily.add(title='Untag me')
+		test_daily.add_tag(test_tag)
+		test_daily.remove_tag(test_tag)
+		self.assertNotIn(test_tag.id,test_daily.tags)
+		test_tag.delete()
+		test_daily.delete()
