@@ -31,7 +31,13 @@ class TestUserProfile(unittest.TestCase):
 		
 
 	def test_status_update(self):
-		self.assertTrue(self.user.update_status())
+		self.user.update_status()
+		self.assertIsNotNone(self.user.hp)
+		self.assertIsNotNone(self.user.maxhp)
+		self.assertIsNotNone(self.user.mp)
+		self.assertIsNotNone(self.user.maxmp)
+		self.assertIsNotNone(self.user.xp)
+		self.assertIsNotNone(self.user.xp_to_level)
 
 
 class TestHabits(unittest.TestCase):
