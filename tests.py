@@ -38,6 +38,7 @@ class TestUserProfile(unittest.TestCase):
 		self.assertIsNotNone(self.user.maxmp)
 		self.assertIsNotNone(self.user.xp)
 		self.assertIsNotNone(self.user.xp_to_level)
+		self.assertIsNotNone(self.user.gp)
 
 
 class TestHabits(unittest.TestCase):
@@ -316,3 +317,24 @@ class TestTagging(unittest.TestCase):
 		self.assertNotIn(test_tag.id,test_daily.tags)
 		test_tag.delete()
 		test_daily.delete()
+
+class TestPurchasing(unittest.TestCase):
+
+	def setUp(self):
+		connection = Connection()
+		connection.login(username,password)
+		self.user = User()
+		Habit.update_all()
+
+	def test_buy_healing_potion(self):
+		healing_potion_cost = 25
+		testing_habit = Habit.add(title='Test habit for stat manipulation',up=True,down=True)
+		while self.user.gp < healing_potion_cost:
+			testing_habit.score('up')
+		if self.user.hp == self.user.maxhp:
+			testing_habit.score('down')
+		self.user.update_status()
+		testing_habit.delete()
+		health_before_potion = self.user.hp
+		self.user.buy_health_potion()
+		self.assertTrue(self.user.hp > health_before_potion,"Before health: %s, Current health: %s" % (health_before_potion,self.user.hp))
