@@ -333,8 +333,44 @@ class TestPurchasing(unittest.TestCase):
 			testing_habit.score('up')
 		if self.user.hp == self.user.maxhp:
 			testing_habit.score('down')
-		self.user.update_status()
 		testing_habit.delete()
 		health_before_potion = self.user.hp
 		self.user.buy_health_potion()
 		self.assertTrue(self.user.hp > health_before_potion,"Before health: %s, Current health: %s" % (health_before_potion,self.user.hp))
+
+	def test_buy_list(self):
+		self.user.get_buy_list()
+		self.assertTrue(len(self.user.buy_list) > 0, 'Buy list is 0 length')
+		self.assertIsNotNone(self.user.buy_list[0].text, 'Invalid item data')
+
+	def test_buy_gear(self):
+		self.user.get_buy_list()
+		buy_list_by_price = {}
+		for item in self.user.buy_list:
+			buy_list_by_price[item.value] = item.key
+		buy_cost = min(buy_list_by_price.keys())
+		item_to_buy = buy_list_by_price[buy_cost]
+		testing_habit = Habit.add(title='Test habit for stat manipulation',up=True,down=True)
+		while self.user.gp < buy_cost:
+			testing_habit.score('up')
+		testing_habit.delete()
+		self.user.buy_item(item_to_buy)
+		self.user.update_status()
+		all_owned_items = []
+		for item in self.user.inventory['gear']['owned'].keys():
+			if self.user.inventory['gear']['owned'][item]:
+				all_owned_items.append(item)
+		for item in self.user.inventory['gear']['equipped']:
+			all_owned_items.append(item)
+		self.assertIn(item_to_buy,all_owned_items)
+
+
+class TestInventory(unittest.TestCase):
+
+	def setUp(self):
+		connection = Connection()
+		connection.login(username,password)
+		self.user = User()
+
+	def test_list_inventory(self):
+		self.assertTrue(len(self.user.inventory['gear']['equipped']) > 0)
