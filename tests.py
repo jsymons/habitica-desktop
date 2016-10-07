@@ -1,12 +1,12 @@
 import unittest
 
-from habitica_api.user import User
-from habitica_api import task
-from habitica_api.connection import Connection
-from habitica_api.daily import Daily
-from habitica_api.habit import Habit
-from habitica_api.todo import ToDo
-from habitica_api.tag import Tag
+from ui.habitica_api.user import User
+from ui.habitica_api import task
+from ui.habitica_api.connection import Connection
+from ui.habitica_api.daily import Daily
+from ui.habitica_api.habit import Habit
+from ui.habitica_api.todo import ToDo
+from ui.habitica_api.tag import Tag
 
 loginfile = open('test_credentials')
 username = loginfile.readline().strip()
