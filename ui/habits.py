@@ -1,5 +1,3 @@
-from .habit_posneg import Ui_habitPosNeg
-from .habit_pos import Ui_habitPositive
 from .taskWidget import TaskWidget
 from .habitica_api.habit import Habit
 from .connection import Connection

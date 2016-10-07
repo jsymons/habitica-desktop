@@ -11,6 +11,8 @@ from ui.user import User
 from ui.connection import Connection
 from ui.main import Ui_MainWindow
 from ui.habits import Habits
+from ui.dailies import Dailies
+from ui.todos import ToDos
 import ui.app as App
 from ui.scrollableVbox import ScrollableVbox
 
@@ -33,6 +35,8 @@ class InterfaceWindow(Ui_MainWindow):
         user = User(window=self)
         user.update_status()
         self.habitsLayout = None
+        self.dailiesLayout = None
+        self.todosLayout = None
         
 
     
@@ -52,6 +56,8 @@ if __name__ == "__main__":
     ui.setupUi(MainWindow)
     App.window = ui
     Habits.update_all()
+    Dailies.update_all()
+    ToDos.update_all()
     MainWindow.show()
     sys.exit(app.exec_())
 
