@@ -1,6 +1,6 @@
 from .habit_posneg import Ui_habitPosNeg
 from .habit_pos import Ui_habitPositive
-from .habitWidget import HabitWidget
+from .taskWidget import TaskWidget
 from .habitica_api.habit import Habit
 from .connection import Connection
 import ui.app as App
@@ -13,7 +13,7 @@ class Habits(Habit):
 
 	def __init__(self,**kwargs):
 		super().__init__(**kwargs)
-		self.widget = HabitWidget(self)
+		self.widget = TaskWidget(self)
 		Habits.all.append(self)
 	
 	def score_positive(self):
